@@ -91,7 +91,7 @@ will be returned.
 """
 
 # Import stock modules
-from __future__ import absolute_import
+
 import base64
 import logging
 import os
@@ -204,7 +204,7 @@ def couple(location, conn):
     If location is a string, return the value looked up from vault.
     """
     coupled_data = {}
-    if isinstance(location, basestring):
+    if isinstance(location, str):
         try:
             (path, key) = location.split('?', 1)
         except ValueError:
@@ -218,7 +218,7 @@ def couple(location, conn):
         if secret or not CONF["unset_if_missing"]:
             return secret
     elif isinstance(location, dict):
-        for return_key, real_location in location.items():
+        for return_key, real_location in list(location.items()):
             coupled_data[return_key] = couple(real_location, conn)
     if coupled_data or not CONF["unset_if_missing"]:
         return coupled_data
@@ -261,13 +261,13 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
 
     # Apply the compound filters to determine which secrets to expose for this minion
     ckminions = salt.utils.minions.CkMinions(__opts__)
-    for filter, secrets in secret_map.items():
+    for filter, secrets in list(secret_map.items()):
         minions =  ckminions.check_minions(filter, "compound")
         if 'minions' in minions:
             # In Salt 2018 this is now in a kwarg
             minions = minions['minions']
         if minion_id in minions:
-            for variable, location in secrets.items():
+            for variable, location in list(secrets.items()):
                 return_data = couple(location, conn)
                 if return_data:
                     vault_pillar[variable] = return_data
